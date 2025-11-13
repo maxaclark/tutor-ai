@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coding Tutor Bot</title>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById("userInput").value;
+            const res = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            });
+            const data = await res.json();
+            const chatBox = document.getElementById("chatBox");
+            chatBox.value += "\nYou: " + userInput + "\nBot: " + data.response;
+            document.getElementById("userInput").value = "";
+        }
+    </script>
+</head>
+<body>
+    <h1>Ask the Coding Tutor</h1>
+    <textarea id="chatBox" rows="15" cols="70" readonly></textarea><br>
+    <input type="text" id="userInput" size="70">
+    <button onclick="sendMessage()">Send</button>
+</body>
+</html>
