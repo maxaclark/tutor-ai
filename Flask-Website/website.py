@@ -17,8 +17,7 @@ def index():
 def chat():
     user_input = request.json["message"]
     messages = session.get("messages", init_conversation())
-    bot_reply, updated_messages = get_bot_response(user_input, messages)
-    session["messages"] = updated_messages
+    bot_reply = get_bot_response(user_input, messages)
     return jsonify({"response": bot_reply})
 
 if __name__ == "__main__":

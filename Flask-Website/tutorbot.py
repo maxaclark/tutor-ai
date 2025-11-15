@@ -5,7 +5,7 @@ import os
 load_dotenv()
 key = os.getenv("API_KEY")
 
-client = OpenAI(api_key=key, base_url="https://api.deepseek.com")
+client = OpenAI(api_key=key)
 
 AI_ROLE = """You are a coding tutor. 
 You will guide the student on how to solve the problem without giving a direct answer. 
@@ -25,39 +25,29 @@ RESPONSE_PARAMS = {
 
 # defines the model role
 def init_conversation():
-    return [
-        {
-            "role": "system",
-            "content": AI_ROLE,
-            "name": "Coding Assistant"
-        }
-    ]
+    conversation = client.conversations.create()
+    conversation_id = conversation.id
+
+    response = client.responses.create(
+        model="gpt-5-nano",
+        input=[{"role": "system", "content": AI_ROLE}, {"role": "user", "content": "Hello!"}],
+        conversation=conversation_id
+    )
+
+    return [{
+        "conversation_id": conversation_id
+    }]
 
 # takes in question, returns answer
 def get_bot_response(user_input, messages):
 
-    # append user input to the list with ai role
-    messages.append({
-        "role": "user",
-        "content": user_input,
-        "name": "Student"
-    })
-
     # get the response from the model
-    response = client.chat.completions.create(
-        **RESPONSE_PARAMS,
-        messages=messages
+    response = client.responses.create(
+        model="gpt-5-nano",
+        input=user_input,
+        conversation=messages[0]["conversation_id"]
     )
-    bot_reply = response.choices[0].message
 
-    # to make reply serializable
-    bot_reply_dict = {
-        "role": bot_reply.role,
-        "content": bot_reply.content
-    }
-
-    # append bot reply to the list with ai role
-    messages.append(bot_reply_dict)
 
     # reply messages for continued conversation, and response for the user
-    return bot_reply.content, messages
+    return response.output_text
